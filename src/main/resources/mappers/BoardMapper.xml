@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dgit.mapper.boardMapper">
+
+	<insert id="create" parameterType="BoardVO">
+		INSERT INTO tbl_board (title, content, writer, regdate, viewcnt) VALUES(#{title}, #{content}, #{writer}, #{regdate}, #{viewcnt} )
+	</insert>
+	
+	<update id="update" parameterType="BoardVO">
+		UPDATE tbl_board SET title=#{title}, content=#{content}, writer=#{writer}, regdate=#{regdate}, viewcnt=#{viewcnt}
+		WHERE bno=#{bno}		
+	</update>
+	
+	<delete id="delete">
+		DELETE FROM tbl_board WHERE bno=#{bno}		
+	</delete>
+
+	<select id="read" resultType="BoardVO">
+		SELECT bno, title, content, writer, regdate, viewcnt, replycnt FROM tbl_board WHERE bno=#{bno}	
+	</select>
+	
+	<select id="listAll" resultType="BoardVO">
+		SELECT bno, title, content, writer, regdate, viewcnt, replycnt FROM tbl_board
+		where bno > 0
+		order by bno desc, regdate desc 
+	</select>
+	
+	<select id="listPage" resultType="BoardVO">
+		SELECT bno, title, content, writer, regdate, viewcnt, replycnt FROM tbl_board
+		where bno > 0
+		order by bno desc, regdate desc 
+		limit #{page}, 10
+	</select>
+	
+	<select id="listCriteria" resultType="BoardVO">
+		SELECT bno, title, content, writer, regdate, viewcnt, replycnt FROM tbl_board
+		where bno > 0
+		order by bno desc, regdate desc 
+		limit #{pageStart}, #{perPageNum}
+	</select>
+	
+	<sql id="search">
+		<if test="searchType != null">
+			<if test="searchType == 't'.toString()">
+				where title like CONCAT('%',#{keyword},'%')
+			</if>
+			<if test="searchType == 'c'.toString()">
+				where content like CONCAT('%',#{keyword},'%')
+			</if>
+			<if test="searchType == 'w'.toString()">
+				where writer like CONCAT('%',#{keyword},'%')
+			</if>
+			<if test="searchType == 'tc'.toString()">
+				where title like CONCAT('%',#{keyword},'%') or content like CONCAT('%',#{keyword},'%')
+			</if>
+			<if test="searchType == 'cw'.toString()">
+				where content like CONCAT('%',#{keyword},'%') or writer like CONCAT('%',#{keyword},'%')
+			</if>
+			<if test="searchType == 'tcw'.toString()">
+				where title like CONCAT('%',#{keyword},'%')
+					 or content like CONCAT('%',#{keyword},'%')
+					 or writer like CONCAT('%',#{keyword},'%')
+			</if>
+		</if>
+	</sql>
+	
+	<select id="listSearch" resultType="BoardVO">
+		SELECT bno, title, content, writer, regdate, viewcnt, replycnt FROM tbl_board
+		<include refid="search"/> 
+		order by bno desc, regdate desc 
+		limit #{pageStart}, #{perPageNum}
+	</select>
+	
+	<select id="totalCount" resultType="int">
+		select count(bno) from tbl_board
+	</select>
+	
+	<select id="searchCount" resultType="int">
+		select count(bno) from tbl_board  
+		<include refid="search"/> 
+	</select>
+	
+	<update id="updateReplyCnt">
+		update tbl_board set replycnt = replycnt + #{amount} where bno = #{bno}
+	</update>
+	
+	<insert id="addAttach">
+		<!-- LAST_INSERT_ID() connectino 기반으로 가장 최근에 사용된 auto_increment 값을 리턴 -->
+		INSERT INTO tbl_attach (fullName, bno) VALUES(#{fullname}, LAST_INSERT_ID())
+	</insert>
+	
+	<insert id="addAttachByBno">
+		INSERT INTO tbl_attach (fullName, bno) VALUES(#{fullname}, #{bno})
+	</insert>
+	
+	<select id="selectAttach" resultType="String">
+		SELECT fullName FROM tbl_attach where bno = #{bno}
+	</select>
+	
+	<delete id="deleteAttach">
+		DELETE FROM  tbl_attach WHERE fullname=#{fullname}
+	</delete>
+	
+	<delete id="deleteAttachByBno">
+		DELETE FROM  tbl_attach WHERE bno=#{bno}
+	</delete>
+</mapper>
+
+
